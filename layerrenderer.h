@@ -3,6 +3,7 @@
 #include <QQuickPaintedItem>
 #include <QMouseEvent>
 #include <QWheelEvent>
+#include <QTransform>
 
 class LayerRenderer : public QQuickPaintedItem
 {
@@ -15,11 +16,14 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
     void mouseReleaseEvent(QMouseEvent *event) override;
     void wheelEvent(QWheelEvent * event) override;
+    void hoverMoveEvent(QHoverEvent *event) override;
 private:
     void drawMesh(QPainter* painter);
 private:
-    qreal m_scale = 1;
     QPoint m_transOrigin;
+    QTransform m_transform;
+    QPoint m_prevPoint;
+    qreal m_scale = 1.0;
 };
 
 #endif // LAYERRENDERER_H

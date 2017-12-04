@@ -6,26 +6,31 @@
 LayerRenderer::LayerRenderer(QQuickItem *parent)
     : QQuickPaintedItem(parent)
 {
+    setAcceptHoverEvents(true);
     setAcceptedMouseButtons(Qt::AllButtons);
+    m_prevPoint = QPoint(-1, -1);
 }
 
 void LayerRenderer::paint(QPainter *painter)
 {
-    painter->resetTransform();
-    painter->translate(m_transOrigin -m_transOrigin * m_scale);
-    painter->scale(m_scale, m_scale);
+    painter->setTransform(m_transform);
     drawMesh(painter);
-    //painter->fillRect(10, 10, 100, 100, QBrush(Qt::red));
 }
 
 void LayerRenderer::mousePressEvent(QMouseEvent *event)
 {
-
+    m_prevPoint = event->pos();
 }
 
 void LayerRenderer::mouseMoveEvent(QMouseEvent *event)
 {
-
+    auto curPos =event->pos();
+    auto offsetPos = curPos - m_prevPoint;
+    auto tm = QTransform()
+            .translate(offsetPos.x(), offsetPos.y());
+    m_prevPoint = curPos;
+    m_transform *= tm;
+    update();
 }
 
 void LayerRenderer::mouseReleaseEvent(QMouseEvent *event)
@@ -36,10 +41,20 @@ void LayerRenderer::mouseReleaseEvent(QMouseEvent *event)
 void LayerRenderer::wheelEvent(QWheelEvent *event)
 {
     if (event->orientation() == Qt::Vertical) {
-        m_scale += (float(event->delta())/1200);
-        m_transOrigin = event->pos();
+        auto pos = event->pos();
+        m_scale = 1 + (float(event->delta())/1200);
+        auto tm = QTransform()
+                .translate(pos.x(), pos.y())
+                .scale(m_scale, m_scale)
+                .translate(-pos.x(), -pos.y());
+        m_transform *= tm;
         update();
     }
+}
+
+void LayerRenderer::hoverMoveEvent(QHoverEvent *event)
+{
+    QQuickPaintedItem::hoverMoveEvent(event);
 }
 
 void LayerRenderer::drawMesh(QPainter *painter)
